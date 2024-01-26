@@ -1,47 +1,79 @@
-import React from 'react'
-import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import React, { useEffect, useState, useCallback } from 'react';
+import { DirectionsRenderer, GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 
-function GoogleMapSection() {
+function GoogleMapSection({ source, destination }) {
   const containerStyle = {
     width: '100%',
     height: '400px'
   };
-  
-  const center = {
-    lat: -3.745,
-    lng: -38.523
-  };
+
+  const [map, setMap] = useState(null);
+  const [center, setCenter] = useState({ lat: 26.7921605, lng: 82.1997954 });
+
+  useEffect(() => {
+    if (source && source.lat && source.lng) {
+      setCenter({
+        lat: source.lat,
+        lng: source.lng
+      });
+    }
+    if (source && destination && source.lat && source.lng && destination.lat && destination.lng) {
+      directionRoute();
+    }
+  }, [source, destination]);
+
+  const directionRoute = () => {
+    const DirectionsService = new google.maps.DirectionsService();
+    DirectionsService.route({
+      origin: { lat: source.lat, lng: source.lng },
+      destination: { lat: destination.lat, lng: destination.lng },
+      travelMode: google.maps.TravelMode.DRIVING
+    }, (result, status) => {
+      if (status === google.maps.DirectionsStatus.OK) {
+        // Handle the direction result here
+      } else {
+        console.error("Error:", status);
+      }
+    });
+  }
+
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: "YOUR_API_KEY"
-  })
+    googleMapsApiKey: "AIzaSyB9ctiAb-J9CZil_ZlpAg3ZOXpsxwudHlNw"
+  });
 
-  const [map, setMap] = React.useState(null)
+  const onLoad = useCallback(function callback(map) {
+    setMap(map);
+  }, []);
 
-  const onLoad = React.useCallback(function callback(map) {
-    // This is just an example of getting and using the map instance!!! don't just blindly copy!
-    const bounds = new window.google.maps.LatLngBounds(center);
-    map.fitBounds(bounds);
+  const onUnmount = useCallback(function callback() {
+    setMap(null);
+  }, []);
 
-    setMap(map)
-  }, [])
-
-  const onUnmount = React.useCallback(function callback(map) {
-    setMap(null)
-  }, [])
+  useEffect(() => {
+    console.log("Source:", source);
+    console.log("Destination:", destination);
+  }, [source, destination]);
 
   return isLoaded ? (
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={10}
-        onLoad={onLoad}
-        onUnmount={onUnmount}
-      >
-        { /* Child components, such as markers, info windows, etc. */ }
-        <></>
-      </GoogleMap>
-  ) : <></>
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={10}
+      onLoad={map=>setMap(map)}
+      
+    >
+      {source && source.lat && source.lng && (
+        <Marker position={{ lat: source.lat, lng: source.lng }} />
+      )}
+      {destination && destination.lat && destination.lng && (
+        <Marker position={{ lat: destination.lat, lng: destination.lng }} />
+      )}
+      {/* Render DirectionsRenderer here */}
+    </GoogleMap>
+  ) : (
+    <div>Loading map...</div>
+  );
 }
 
-export default GoogleMapSection
+export default GoogleMapSection;

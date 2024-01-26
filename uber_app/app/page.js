@@ -7,6 +7,7 @@ import { SourceContext } from '/context/SourceContext'
 import { UserButton } from '@clerk/nextjs'
 import Image from 'next/image'
 import { useState } from 'react'
+import { LoadScript } from '@react-google-maps/api'
 
 export default function Home() {
   const [source, setSource] = useState([]) // Corrected variable name
@@ -15,6 +16,7 @@ export default function Home() {
   return (
     <SourceContext.Provider value={{ source, setSource }}> {/* Added missing closing curly brace */}
       <DestinationContext.Provider value={{ destination, setDestination }}>
+        <LoadScript libraries={['places']} googleMapsApiKey={"AIzaSyB9ctiAb-J9CZil_ZlpAg3ZOXpxwudHlNw"}>
         <div className='p-6 grid grid-cols-1 md:grid-cols-3 gap-5'>
           <div>
             <SearchSection />
@@ -23,6 +25,7 @@ export default function Home() {
             <GoogleMapSection />
           </div>
         </div>
+        </LoadScript>
       </DestinationContext.Provider>
     </SourceContext.Provider>
   )
